@@ -1,0 +1,24 @@
+pipeline {
+    agent windows
+    stages {
+        stage('build step') {
+            echo "Buildstage is running"
+            bat "mkdir workspace"
+            bat "cd leumi"
+            bat "zip ../workspace/leumi_exam.zip main.js"
+            bat "cd.."            
+        }
+        stage('s3 creation') {
+            echo "Creating S3"
+            bat "aws s3api create-bucket --bucket=Leumi-Lambda-Exam-s3 --region=us-east-1"
+        }
+        stage('copy artifact to s3') {
+            echo "Copying Artifact to S3"
+            bat "aws s3 cp ../workspace/leumi_exam.zip s3://Leumi-Lambda-Exam-s3/leumi_exam.zip"
+        }
+        stage('lambda and gw creation') {
+            echo "creating Lambda and GW"
+            bat "terraform apply"
+        }
+    }
+}
